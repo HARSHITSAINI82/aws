@@ -1,0 +1,199 @@
+from tkinter import *
+from tkinter import messagebox, ttk
+import pymysql
+
+
+class EmployeeSystem:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Employee Payroll Management System")
+        self.root.geometry("1350x750+0+0")
+        self.root.configure(background="white")
+
+        # Variables
+        self.var_emp_code = StringVar()
+        self.var_designation = StringVar()
+        self.var_name = StringVar()
+        self.var_age = StringVar()
+        self.var_gender = StringVar()
+        self.var_email = StringVar()
+        self.var_dob = StringVar()
+        self.var_doj = StringVar()
+        self.var_experience = StringVar()
+        self.var_proof_id = StringVar()
+        self.var_hr_location = StringVar()
+        self.var_contact = StringVar()
+        self.var_status = StringVar()
+        self.var_month = StringVar()
+        self.var_year = StringVar()
+        self.var_salary = StringVar()
+        self.var_t_days = StringVar()
+        self.var_absent = StringVar()
+        self.var_medical = StringVar()
+        self.var_pf = StringVar()
+        self.var_convence = StringVar()
+        self.var_netsalary = StringVar()
+        self.salary_receipt = ""
+
+        # Title
+        title = Label(self.root, text="Employee Payroll Management System", font=("times new roman", 30, "bold"), bg="#262626", fg="white", anchor="w", padx=10)
+        title.place(x=0, y=0, relwidth=1)
+
+        # Employee Details Frame
+        Frame1 = Frame(self.root, bd=3, relief=RIDGE, bg="white")
+        Frame1.place(x=10, y=70, height=570, width=740)
+
+        title2 = Label(Frame1, text="Employee Details", font=("times new roman", 20), bg="lightgray", fg="black", anchor="w", padx=10)
+        title2.place(x=0, y=0, relwidth=1)
+
+        lbl_code = Label(Frame1, text="Employee Code", font=("times new roman", 20), bg="white", fg="black")
+        lbl_code.place(x=10, y=70)
+        txt_code = Entry(Frame1, font=("times new roman", 15), textvariable=self.var_emp_code, bg="lightyellow", fg="black")
+        txt_code.place(x=220, y=74, width=200)
+        btn_search = Button(Frame1, text="Search", command=self.search, font=("times new roman", 20), bg="gray", fg="black")
+        btn_search.place(x=440, y=72, height=30)
+
+        details = [
+            ("Designation", self.var_designation), ("D.O.B", self.var_dob),
+            ("Name", self.var_name), ("D.O.J", self.var_doj),
+            ("Age", self.var_age), ("Experience", self.var_experience),
+            ("Gender", self.var_gender), ("Proof ID", self.var_proof_id),
+            ("Email", self.var_email), ("Contact No", self.var_contact),
+            ("Hired Location", self.var_hr_location), ("Status", self.var_status)
+        ]
+        y = 120
+        for i in range(0, len(details), 2):
+            lbl1 = Label(Frame1, text=details[i][0], font=("times new roman", 20), bg="white", fg="black")
+            lbl1.place(x=10, y=y)
+            txt1 = Entry(Frame1, font=("times new roman", 15), textvariable=details[i][1], bg="lightyellow", fg="black")
+            txt1.place(x=170, y=y + 5, width=200)
+
+            lbl2 = Label(Frame1, text=details[i + 1][0], font=("times new roman", 20), bg="white", fg="black")
+            lbl2.place(x=390, y=y)
+            txt2 = Entry(Frame1, font=("times new roman", 15), textvariable=details[i + 1][1], bg="lightyellow", fg="black")
+            txt2.place(x=520, y=y + 5, width=200)
+            y += 50
+
+        lbl_Address = Label(Frame1, text="Address", font=("times new roman", 18), bg="white", fg="black")
+        lbl_Address.place(x=10, y=420)
+        self.txt_Address = Text(Frame1, font=("times new roman", 15), bg="lightyellow", fg="black")
+        self.txt_Address.place(x=170, y=425, width=540, height=130)
+
+        # Salary Details Frame
+        Frame2 = Frame(self.root, bd=3, relief=RIDGE, bg="white")
+        Frame2.place(x=760, y=70, height=305, width=580)
+
+        title3 = Label(Frame2, text="Employee Salary Details", font=("times new roman", 20), bg="lightgray", fg="black", anchor="w", padx=10)
+        title3.place(x=0, y=0, relwidth=1)
+
+        salary_details = [
+            ("Month", self.var_month), ("Year", self.var_year),
+            ("Salary", self.var_salary), ("Days", self.var_t_days),
+            ("Absent", self.var_absent), ("Medical", self.var_medical),
+            ("PF", self.var_pf), ("Convence", self.var_convence),
+            ("Net Salary", self.var_netsalary)
+        ]
+        y = 60
+        for i in range(0, len(salary_details), 3):
+            for j in range(3):
+                if i + j < len(salary_details):
+                    lbl = Label(Frame2, text=salary_details[i + j][0], font=("times new roman", 15), bg="white", fg="black")
+                    lbl.place(x=10 + (j * 180), y=y)
+                    txt = Entry(Frame2, font=("times new roman", 18), textvariable=salary_details[i + j][1], bg="lightyellow", fg="black")
+                    txt.place(x=90 + (j * 180), y=y + 2, width=100)
+            y += 50
+
+        btn_calculate = Button(Frame2, text="Calculate", command=self.calculate, font=("times new roman", 20), bg="orange", fg="black")
+        btn_calculate.place(x=150, y=225, height=30, width=120)
+        btn_save = Button(Frame2, text="Save", command=self.add, font=("times new roman", 20), bg="green", fg="white")
+        btn_save.place(x=285, y=225, height=30, width=120)
+        btn_clear = Button(Frame2, text="Clear", command=self.clear, font=("times new roman", 20), bg="gray", fg="black")
+        btn_clear.place(x=420, y=225, height=30, width=120)
+
+        # Calculator Frame
+        Frame3 = Frame(self.root, bd=3, relief=RIDGE, bg="white")
+        Frame3.place(x=760, y=385, height=255, width=280)
+
+        title4 = Label(Frame3, text="Salary Calculator", font=("times new roman", 20), bg="lightgray", fg="black", anchor="w", padx=10)
+        title4.place(x=0, y=0, relwidth=1)
+
+        lbl_hourly = Label(Frame3, text="Hourly Rate", font=("times new roman", 15), bg="white", fg="black")
+        lbl_hourly.place(x=10, y=50)
+        txt_hourly = Entry(Frame3, font=("times new roman", 15), bg="lightyellow", fg="black")
+        txt_hourly.place(x=140, y=50)
+
+        lbl_hours = Label(Frame3, text="Hours Worked", font=("times new roman", 15), bg="white", fg="black")
+        lbl_hours.place(x=10, y=100)
+        txt_hours = Entry(Frame3, font=("times new roman", 15), bg="lightyellow", fg="black")
+        txt_hours.place(x=140, y=100)
+
+        btn_calculate = Button(Frame3, text="Calculate Pay", font=("times new roman", 15), bg="orange", fg="black")
+        btn_calculate.place(x=80, y=150, height=30, width=120)
+
+        # Receipt Frame
+        Frame4 = Frame(self.root, bd=3, relief=RIDGE, bg="white")
+        Frame4.place(x=1050, y=385, height=255, width=290)
+
+        title5 = Label(Frame4, text="Salary Receipt", font=("times new roman", 20), bg="lightgray", fg="black", anchor="w", padx=10)
+        title5.place(x=0, y=0, relwidth=1)
+
+        self.txt_receipt = Text(Frame4, font=("times new roman", 15), bg="lightyellow", fg="black")
+        self.txt_receipt.place(x=0, y=40, width=290, height=200)
+
+    def search(self):
+        messagebox.showinfo("Info", "Search functionality not implemented.")
+
+    def calculate(self):
+        try:
+            # Example calculation
+            basic_salary = float(self.var_salary.get())
+            absent_days = int(self.var_absent.get())
+            total_days = int(self.var_t_days.get())
+            medical_allowance = float(self.var_medical.get())
+            pf = float(self.var_pf.get())
+            convence = float(self.var_convence.get())
+
+            per_day = basic_salary / total_days
+            deduction = per_day * absent_days
+            net_salary = basic_salary - deduction + medical_allowance + convence - pf
+            self.var_netsalary.set(round(net_salary, 2))
+
+            self.generate_receipt()
+        except Exception as e:
+            messagebox.showerror("Error", f"Error calculating salary: {str(e)}")
+
+    def generate_receipt(self):
+        self.salary_receipt = f"""
+        Employee Code: {self.var_emp_code.get()}
+        Name: {self.var_name.get()}
+        Month: {self.var_month.get()} Year: {self.var_year.get()}
+        ----------------------------------
+        Basic Salary: {self.var_salary.get()}
+        Deductions: {self.var_absent.get()} Days Absent
+        Medical Allowance: {self.var_medical.get()}
+        Provident Fund: {self.var_pf.get()}
+        Convence: {self.var_convence.get()}
+        ----------------------------------
+        Net Salary: {self.var_netsalary.get()}
+        """
+        self.txt_receipt.delete(1.0, END)
+        self.txt_receipt.insert(END, self.salary_receipt)
+
+    def add(self):
+        messagebox.showinfo("Info", "Save functionality not implemented.")
+
+    def clear(self):
+        for var in [self.var_emp_code, self.var_designation, self.var_name, self.var_age, self.var_gender,
+                    self.var_email, self.var_dob, self.var_doj, self.var_experience, self.var_proof_id,
+                    self.var_hr_location, self.var_contact, self.var_status, self.var_month, self.var_year,
+                    self.var_salary, self.var_t_days, self.var_absent, self.var_medical, self.var_pf,
+                    self.var_convence, self.var_netsalary]:
+            var.set("")
+        self.txt_Address.delete(1.0, END)
+        self.txt_receipt.delete(1.0, END)
+
+
+if __name__ == "__main__":
+    root = Tk()
+    obj = EmployeeSystem(root)
+    root.mainloop()
